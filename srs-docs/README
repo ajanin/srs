@@ -1,0 +1,22 @@
+This directory contains an extract from the Swordfish directories of various documents specifically about SRS (the System for Running Systems).
+
+It's probably best to start with the tutorials.
+
+Note that SRS was mostly used in the context of the ICSI Swordfish project, which was funded under the IARPA Babel program. There are plenty of remnants of its heritage.
+
+Currently, SRS is not heavily used and has seen little additional development. The code was released under a BSD license, and is available upon request (janin@icsi.berkeley.edu).
+
+----------------------------------------------------------------------
+
+MANIFEST
+
+tutorials/ - SRS tutorials.
+
+rationales/ - A somewhat stream-of-consciousness description of why we
+did thing the way we did.
+
+srs_lunch_talk.pdf - Slides from an ICSI lunch talk on SRS. Although
+it includes the speaker notes, it's still probably not stand-alone.
+
+srs-go-practices.txt - Describes some best-practices for writing shell
+scripts that implement SRS steps.

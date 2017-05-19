@@ -1,0 +1,6 @@
+# Test of regular expression
+a_aa vala1
+a_ab vala2
+a_ac vala3
+
+INCLUDE testre2.config

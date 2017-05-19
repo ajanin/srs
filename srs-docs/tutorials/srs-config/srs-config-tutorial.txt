@@ -1,0 +1,214 @@
+This document is a simple tutorial for using the System for Running
+Systems tool "srs-config".
+
+The executables are in $SWORDFISH_ROOT/share/bin, which must be in
+your path. Python libraries are in $SWORDFISH_ROOT/share/lib/python,
+which must be in your PYTHONPATH. It has only been tested with
+python2.7, so you should be sure whichever python is first in your
+path is python2.7.
+
+Currently, the tool assumes /tscratch and /scratch exist, so it will
+only work on squids, octopusus, and tako. I suggest you experiment by
+sshing directly into tako.
+
+This tutorial was designed for pedagogic reasons. It illustrates some
+features of the srs-config system, and the tutorial is not meant to be
+the most efficient or even a rational method of achieving the task.
+The examples are woefully lacking in error checking, and should NOT be
+used as models for writing configuration handling.
+
+----------------------------------------------------------------------
+
+In order to make moving software from one site to another and to help
+run experiments, it is useful to put various configuration parameters
+in a file rather than embedding them in code. This document introduces
+the format for the config files we propose to use, and details how
+to access the parameters from the command line. The python interface
+is detailed in another tutorial.
+
+----------------------------------------------------------------------
+Config Files
+
+A variable in a config file is just a name followed by a value:
+
+min_pause_duration 0.125
+corpus_audio_dir /u/drspeech/data/icsimc/audio
+cflags    -O3    -g
+
+Whitespace on either side of the name and value is removed, but
+whitespace within a value is preserved, so in this example, the
+variable "cflags" has the value "-O3    -g". Blank lines and lines 
+that start with # are ignored.
+
+NOTE: The FIRST occurrence of a variable sets its value. This is
+convenient since you only have to read down the file until you see the
+first definition.
+
+min_pause_duration 0.125
+dictionary plain
+min_pause_duration 0.5
+
+The value of "min_pause_duration" for this config file is 0.125. This
+is important for INCLUDE, discussed later.
+
+Tools to access config files associate the contiguous comment block
+immediate above a variable with that variable. It's good practice to
+include comments. The following is in example1.config:
+
+   1. # Config file for experiment 53 by Adam Janin.
+   2. # Same as 52, but with shorter pause duration and English
+   3.
+   4. # The minimum pause duration in seconds used by the
+   5. # speech/nonspeech detector
+   6.
+   7. min_pause_duration 0.125
+   8.
+   9. # The remainder of this file contains dictionary settings
+  10.
+  11. # The main dictionary
+  12. dictionary plain
+  13.
+  14. # Default language
+  15. lang en
+
+Lines 4 and 5 are associated with min_pause_duration. Line 11 is
+associated with dictionary. Line 14 is associated with lang. Lines 1,
+2, and 9 are not immediately above a variable, and are therefore not
+associated with a variable.
+
+----------------------------------------------------------------------
+Macros
+
+A simple macro system is also available by using variable names
+prefixed with a dollar sign:
+
+CorpusDir /u/drspeech/data/icsimc
+corpus_audio_dir $CorpusDir/audio
+corpus_trans_dir $CorpusDir/trans
+
+The variable "CorpusDir" has the value "/u/drspeech/data/icsimc".
+If $CorpusDir ever appears as a value after the line were it was
+defined, it will be replaced with /u/drspeech/data/icsimc. The value
+of corpus_audio_dir is /u/drspeech/data/icsimc/audio and the value of
+corpus_trans_dir is /u/drspeech/data/icsimc/trans.
+
+Just like any other variables, the value is set the first time it is
+defined only.
+
+CorpusDir /u/drspeech/data/switchboard
+CorpusDir /u/drspeech/data/icsimc
+corpus_audio_dir $CorpusDir/audio
+corpus_audio_dir $CorpusDir/wave
+
+In this case, corpus_audio_dir has value /u/drspeech/data/switchboard/audio.
+
+----------------------------------------------------------------------
+Includes
+
+You can chain config files together using INCLUDE. The idea is to
+start with the most specific config file, and that config file
+INCLUDEs more general config files. For example, a particular
+experiment config file might include a corpus config file. The
+corpus config might include the system default config. This way, the
+experiment config file can override the more general settings.
+
+Remember, only the FIRST occurrence sets the value, so the INCLUDE
+lines generally come at the bottom of a config file. Here's an example
+that demonstrates how variables and INCLUDEs interact.
+
+test1.config
+------------
+CorpusDir /u/drspeech/data/switchboard
+corpus_audio_dir $CorpusDir/audio
+INCLUDE test2.config
+
+test2.config
+------------
+CorpusDir /u/drspeech/data/icsimc
+corpus_audio_dir $CorpusDir/wav
+corpus_trans_dir $CorpusDir/trans
+
+If you're reading test1.config, what is the value of corpus_audio_dir?
+How about corpus_trans_dir?
+
+Read test1.config from top to bottom, remembering the values as you
+encounter them. You find "corpus_audio_dir" on line 2, so the value is
+/u/drspeech/data/switchboard/audio.
+
+For corpus_trans_dir, read test1.config from top to bottom.
+You reach the INCLUDE without finding corpus_trans_dir, so you
+follow the included config file. Line 1 of test2.config is
+ignored because CorpusDir is already defined, and you finally
+find corpus_trans_dir on line 3 of test2.config. The value is
+/u/drspeech/data/switchboard/trans.
+
+----------------------------------------------------------------------
+The srs-config Tool
+
+srs-config is a command line tool for getting values out of config
+files. For example:
+
+> srs-config -config test1.config corpus_trans_dir
+/u/drspeech/data/switchboard/trans
+
+> srs-config -config test2.config corpus_trans_dir
+/u/drspeech/data/icsimc/trans
+
+> srs-config -config test2.config corpus_phone_dir
+Error: Failed to find key corpus_phone_dir in config file test2.config.
+
+The return code of sys-config is 0 if the key is found, and 1 otherwise.
+
+If you set the environment variable SRS_CONFIG to a config file,
+you can skip the -config argument. The command line overrides the
+environment variable.
+
+> setenv SRS_CONFIG test1.config
+
+> srs-config corpus_trans_dir
+/u/drspeech/data/switchboard/trans
+
+> srs-config -config test2.config corpus_trans_dir
+/u/drspeech/data/icsimc/trans
+
+You can provide a default value which will be used if the variable
+doesn't exist.
+
+> srs-config -default 0.5 min_duration
+0.5
+
+> srs-config -default /u/janin/mr corpus_trans_dir
+/u/drspeech/data/switchboard/trans
+
+If you use -quiet, nothing will be printed. This is useful if you just
+want to test the return code.
+
+The -doc flag will extract the comments associated with a variable
+rather than the value. Unlike normal operation, it does not stop with
+the first occurence of the variable - it prints the comments from all
+occurences.
+
+> srs-config -doc -config test3.config input_path
+(Line 4 of config file test4.config)
+This comment is in test4.config
+(Line 7 of config file test3.config)
+This comment is in test3.config
+
+> srs-config -doc -config test3.config example_directory
+(Line 7 of config file test4.config)
+And here's another example
+
+Finally, if you want to debug the system, you can provide e.g. -loglevel DEBUG.
+
+> srs-config -config test1.config -loglevel DEBUG corpus_trans_dir
+INFO:root:Reading from config file test1.config
+DEBUG:root:Found CorpusDir at line 1 in test1.config
+DEBUG:root:Found corpus_audio_dir at line 2 in test1.config
+INFO:root:Including test2.config at line 3 in test1.config
+DEBUG:root:Found corpus_trans_dir at line 3 in test2.config
+/u/drspeech/data/switchboard/trans
+
+
+NOTES:
+
+(The doc string interface is still a work in progress - suggestions welcome!)

@@ -1,0 +1,72 @@
+Please see srs-config-tutorial before reading this tutorial.
+
+----------------------------------------------------------------------
+Python Interface
+
+The python interface is supplied by importing srs (in
+$SWORDFISH_ROOT/share/lib/python). The Config class requires a config
+file path, which is immediately processed. 
+
+Upon return, the Config instance will have a "vars" member with
+the values and a "docs" instance with the documentation strings.
+
+Example:
+
+>>> import srs
+>>> c = srs.Config('test1.config')
+>>> c.vars.corpus_audio_dir
+'/u/drspeech/data/switchboard/audio'
+>>> c.vars.pause_duration
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+AttributeError: _VarEntry instance has no attribute 'pause_duration'
+
+
+There are several other ways to access variables:
+
+>>> c.vars['corpus_audio_dir']
+'/u/drspeech/data/switchboard/audio'
+
+>>> c.get('corpus_audio_dir')
+'/u/drspeech/data/switchboard/audio'
+
+You can test if a variable appeared with the "in" keyword.
+
+>>> 'corpus_audio_dir' in c
+True
+
+>>> 'pause_duration' in c
+False
+
+
+If you're going to access variables frequently, you can store them
+locally.
+
+>>> V = c.vars
+>>> V.CorpusDir
+'/u/drspeech/data/switchboard'
+
+This can be done in "one go":
+
+>>> V = srs.Config('test1.config').vars
+>>> V.corpus_trans_dir
+'/u/drspeech/data/switchboard/trans'
+
+
+You can access the documentation strings in a few ways as well:
+
+>>> c.docs.corpus_audio_dir
+>>> c.docs['corpus_audio_dir']
+>>> c.getdoc('corpus_audio_dir')
+
+
+Currently, this returns a list of instances of ConfigDocString, which
+in turn hold the configfile, the line, and the comment. It's a list
+because the system does not stop at the first occurence of a comment.
+It reads all occurences and stores them in a list. If you just want a
+string version:
+
+>>> c.getdocstring('corpus_audio_dir')
+
+Note that the string returned by getdocstring is still a work in
+progress.

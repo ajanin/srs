@@ -1,0 +1,29 @@
+######################################################################
+#
+# This config file is read by srs-go and should hold variables
+# that control where srs-go creates data directories. It currently
+# represents the setup for the virtual machine.
+#
+# Instead of the data directories being created physically in one
+# place and then linked from the experiment's SRS-GO/data directory,
+# the physical directories are created directly under SRS-GO/data.
+#
+
+######################################################################
+#
+# The following section controls how the data directories are
+# created.
+#
+
+# List of links created under the data directory
+srs_go_data_directories scratch_local_ttmp scratch_ttmp scratch
+
+# For each entry X in srs_go_data_directories, there must be an entry
+# srs_go_data_path_X in this section, which controls where the
+# physical directories are created. They must point to separate
+# directories. If set to None as they are here, the physical directories
+# will be created directly, e.g. EXPDIR/SRS-GO/data/scratch_ttmp/
+
+srs_go_data_path_scratch_local_ttmp None
+srs_go_data_path_scratch_ttmp None
+srs_go_data_path_scratch None

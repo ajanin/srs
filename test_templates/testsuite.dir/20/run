@@ -1,0 +1,5 @@
+#! /bin/sh
+test "${ZSH_VERSION+set}" = set && alias -g '${1+"$@"}'='"$@"'
+cd '/n/banquet/da/janin/projects/swordfish/svn/src/srs/test_templates'
+exec ${CONFIG_SHELL-/bin/sh} "/n/banquet/da/janin/projects/swordfish/svn/src/srs/test_templates/./testsuite" -v -d  20 ${1+"$@"}
+exit 1

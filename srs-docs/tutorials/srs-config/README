@@ -1,0 +1,26 @@
+Tutorials for the System for Running Systems configuration management
+tool.
+
+----------------------------------------------------------------------
+
+srs-config-tutorial.txt
+
+How to write config files and how to use the srs-config tool.
+
+----------------------------------------------------------------------
+
+srs-config-python-tutorial.txt
+
+How to use the python interface to the config tools. You should
+read srs-config-tutorial.txt first, since it covers the basic
+concepts.
+
+----------------------------------------------------------------------
+
+example1.config
+test1.config
+...
+
+Various sample config files. See srs-config-tutorial.txt.
+
+----------------------------------------------------------------------

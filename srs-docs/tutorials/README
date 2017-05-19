@@ -1,0 +1,21 @@
+Tutorials for the SWORDFISH tools.
+
+----------------------------------------------------------------------
+
+srs-config
+
+The System for Running Systems config file formats and tools.
+
+----------------------------------------------------------------------
+
+srs-go
+
+The System for Running Systems template execution tool. You should
+read srs-config before reading this, as srs-go depends on srs-config.
+
+----------------------------------------------------------------------
+
+srs-go-parallel
+
+The System for Running Systems parallel executation tool. You should
+read srs-go before reading this, as srs-go-parallel depends on it.

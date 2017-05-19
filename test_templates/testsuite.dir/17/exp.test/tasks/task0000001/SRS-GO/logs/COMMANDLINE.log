@@ -1,0 +1,3 @@
+#  srs-go called on Sun Jul 26 10:03:00 2015 by user janin on cuttlefish1.icsi.berkeley.edu 
+
+/u/janin/projects/swordfish/svn/src/srs/srs-go -template /n/banquet/da/janin/projects/swordfish/svn/src/srs/test_templates/simple -loglevel WARNING -dir /n/banquet/da/janin/projects/swordfish/svn/src/srs/test_templates/testsuite.dir/17/exp.test/tasks/task0000001 -config /dev/null -- v2 val2 v1 val1.2 outfile /n/banquet/da/janin/projects/swordfish/svn/src/srs/test_templates/testsuite.dir/17/out2

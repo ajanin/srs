@@ -1,0 +1,117 @@
+m4_define([AT_PACKAGE_STRING],    [srs-config v0.6])
+m4_define([AT_PACKAGE_BUGREPORT], [janin@icsi.berkeley.edu])
+
+AT_INIT([Config tests])
+
+AT_BANNER([Misc test])
+
+AT_SETUP([Multiple config file test])
+AT_CHECK([srs-config -c $at_dir/test1.config -c $at_dir/test3.config -dump], [], [CorpusDir /u/drspeech/data/switchboard
+corpus_audio_dir /u/drspeech/data/switchboard/audio
+corpus_trans_dir /u/drspeech/data/switchboard/trans
+example_directory /usr/local/doc/examples
+input_path /u/drspeech/data
+])
+AT_CLEANUP
+
+AT_SETUP([Relative directory test])
+AT_CHECK([srs-config -c $at_dir/subdir2/test2.config var1], [], [val1
+])
+AT_CLEANUP
+
+AT_SETUP([Simple macro tests])
+AT_CHECK([srs-config -c $at_dir/test1.config -dump], [], [CorpusDir /u/drspeech/data/switchboard
+corpus_audio_dir /u/drspeech/data/switchboard/audio
+corpus_trans_dir /u/drspeech/data/switchboard/trans
+])
+AT_CLEANUP
+
+AT_BANNER([Test special characters])
+
+AT_SETUP([$$ check 1])
+AT_CHECK([srs-config -c $at_dir/testchars.config v1], [], [$dollar_var
+])
+AT_CLEANUP
+
+AT_SETUP([$$ check 2])
+AT_CHECK([srs-config -c $at_dir/testchars.config v2], [], [$dollar_var foo baz
+])
+AT_CLEANUP
+
+AT_SETUP([Quote check])
+AT_CHECK([srs-config -c $at_dir/testchars.config v3], [], ['hello'
+])
+AT_CLEANUP
+
+AT_SETUP([-dump of special chars])
+AT_CHECK([srs-config -c $at_dir/testchars.config -dump], [], [v1 $$dollar_var
+v2 $$dollar_var foo baz
+v3 'hello'
+])
+AT_CLEANUP
+
+AT_SETUP([-dumpsh of special chars])
+AT_CHECK([srs-config -c $at_dir/testchars.config -dumpsh], [], [v1='$dollar_var'
+v2='$dollar_var foo baz'
+v3=''"'"'hello'"'"''
+])
+AT_CLEANUP
+
+AT_SETUP([-dumpcsh of special chars])
+AT_CHECK([srs-config -c $at_dir/testchars.config -dumpcsh], [], [set v1='$dollar_var'
+set v2='$dollar_var foo baz'
+set v3=''"'"'hello'"'"''
+])
+AT_CLEANUP
+
+AT_BANNER([Dump tests])
+
+AT_SETUP([Test -dumpsh])
+AT_CHECK([srs-config -c $at_dir/testre1.config -dumpsh], [], [a_aa='vala1'
+a_ab='vala2'
+a_ac='vala3'
+b_aa='valb1'
+b_ab='valb2'
+b_ac='valb3'
+])
+AT_CLEANUP
+
+
+AT_SETUP([Test -dumpsh regexp])
+AT_CHECK([srs-config -c $at_dir/testre1.config -dumpsh -r aa], [], [a_aa='vala1'
+b_aa='valb1'
+])
+AT_CLEANUP
+
+AT_SETUP([Test -dumpcsh regexp])
+AT_CHECK([srs-config -c $at_dir/testre1.config -dumpcsh X_ -r aa], [], [set X_a_aa='vala1'
+set X_b_aa='valb1'
+])
+AT_CLEANUP
+
+AT_SETUP([Test -dumpmatlab regexp])
+AT_CHECK([srs-config -c $at_dir/testre1.config -dumpmatlab -r aa], [], [a_aa='vala1';
+b_aa='valb1';
+])
+AT_CLEANUP
+
+AT_SETUP([Test -dumpperl regexp])
+AT_CHECK([srs-config -c $at_dir/testre1.config -dumpperl c -r aa], [], [$c{'a_aa'}='vala1';
+$c{'b_aa'}='valb1';
+])
+AT_CLEANUP
+
+AT_SETUP([Test -dump regexp])
+AT_CHECK([srs-config -c $at_dir/testre1.config -dump -r aa], [], [a_aa vala1
+b_aa valb1
+])
+AT_CLEANUP
+
+AT_SETUP([Test -r])
+AT_CHECK([srs-config -c $at_dir/testre1.config -r 'aa|ab'], [], [a_aa vala1
+a_ab vala2
+b_aa valb1
+b_ab valb2
+])
+AT_CLEANUP
+

@@ -1,0 +1,203 @@
+#!/usr/bin/env python
+#
+# This version separates first pass (e.g. stuff used for kaldi).
+#
+# Print out the status of an SRS run, including the required
+# timing runs for the system description.
+#
+# This is a total hack, especially the parts that determine the
+# step timing.
+
+import datetime
+from dateutil import parser as dparser
+import os
+import os.path
+import re
+import sys
+
+import srs
+
+def main(argv):
+    ExpDir=argv[1]
+    global MasterConfig
+    MasterConfig = srs.Config('%s/SRS-GO/config/MASTER.config'%(ExpDir))
+
+    # Show which step if any was in progress
+    progress=find_in_progress(ExpDir)
+    if progress is not None:
+        if os.path.isdir(progress):
+            print 'Directory',
+        else:
+            print 'File',
+        print 'step %s is marked as in progress.\n'%(progress)
+    else:
+        print 'No in progress step found.\n'
+
+    # Show which step if any failed
+    failed=find_failed(ExpDir)
+    if failed is not None:
+        print 'Step %s failed.\n'%(failed)
+    if failed is None and progress is None:
+        print '%s completed.\n'%(ExpDir)
+
+    # Compute timing. Note lots of hard coding for phases and what's
+    # paralel.
+
+    timing_report(ExpDir)
+
+# End of main()
+
+def timing_report(ExpDir):
+    '''Print out the timing report. This is very hacky. The phases are all hard-coded to the templates as of March 2014, and the code to deterimine if a step is parallel or GPU is highly, ah, heuristic.'''
+    global MasterConfig
+    srs_gp_njobs = int(MasterConfig.get('srs_gp_njobs'))
+
+    # Intialize the phases. Training is, ah, training. Ingestion is
+    # everything after training but prior to knowing the keywords.
+    # Search is keyword search,which isn't currently included.
+    # Score is NIST scoring of kws. For technical reasons, asr scoring
+    # is included in Ingestion.
+    #
+    # This version computes times only for first pass. Everything
+    # else is in Other
+
+    elapsed=dict()
+    elapsed['Training'] = datetime.timedelta(0)
+    elapsed['IngestionDev'] = datetime.timedelta(0)
+    elapsed['IngestionEval'] = datetime.timedelta(0)
+    elapsed['Score'] = datetime.timedelta(0)
+    elapsed['Other'] = datetime.timedelta(0)
+
+    cpu=dict()
+    cpu['Training'] = datetime.timedelta(0)
+    cpu['IngestionDev'] = datetime.timedelta(0)
+    cpu['IngestionEval'] = datetime.timedelta(0)
+    cpu['Score'] = datetime.timedelta(0)
+    cpu['Other'] = datetime.timedelta(0)
+
+    gpu=dict()
+    gpu['Training'] = datetime.timedelta(0)
+    gpu['IngestionDev'] = datetime.timedelta(0)
+    gpu['IngestionEval'] = datetime.timedelta(0)
+    gpu['Score'] = datetime.timedelta(0)
+    gpu['Other'] = datetime.timedelta(0)
+
+    # Asssume we start in Training
+    phase='Training'
+    for filepath in stepfile_iterator(ExpDir):
+        (dirstep, stepname) = os.path.split(filepath)
+
+        # NOTE HORRIBLE HARDWIRING OF PHASE TRANSITIONS
+        if stepname == 'step011.reconfig':
+            phase = 'Other'
+        elif stepname == 'step030.config_dev':
+            phase='IngestionDev'
+        elif stepname == 'step031.config_decode':
+            phase='Other'
+        elif stepname == 'step032.postconfig_dev':
+            phase='Score'
+        elif stepname == 'step050.config_eval':
+            phase='IngestionEval'
+
+        timepath='%s/SRS-GO/logs/TIMES.%s'%(dirstep, stepname)
+        if os.path.exists(timepath):
+            (st, et) = get_times(timepath)
+            if st is not None and et is not None:
+                elapsed[phase] += et - st;
+                if is_parallel(filepath):
+                    cpu[phase] += ((et - st) * srs_gp_njobs)
+                else:
+                    cpu[phase] += et - st;
+                if is_gpu(filepath):
+                    gpu[phase] += et - st;
+                    
+    for phase in ('Training', 'IngestionDev', 'Score', 'IngestionEval'):
+        print phase, 'Elapsed Time (hh:mm:ss) -', format_delta_time(elapsed[phase])
+        print phase, 'Total CPU Time (hh:mm:ss) -', format_delta_time(cpu[phase])
+        print phase, 'Total GPU Time (hh:mm:ss) -', format_delta_time(gpu[phase])
+
+# End of timing_report()
+
+def format_delta_time(d):
+    s = d.total_seconds()
+    if s <= 0:
+        return '00:00:00'
+
+    (h, mr) = divmod(s, 60*60)
+    (m, sr) = divmod(mr, 60)
+    return '%02d:%02d:%02.2f'%(h, m, sr)
+            
+def is_gpu(filepath):
+    '''A step is considered to use a gpu if it has any of the strings qnmultitrn, rbm_train.sh, or tnet_cmd'''
+    with open(filepath) as fh:
+        for line in fh:
+            if 'qnmultitrn' in line or 'rbm_train.sh' in line or 'tnet_cmd' in line:
+                return True
+    return False
+
+def is_parallel(filepath):
+    '''A step is considered parallel if it contains the string srs-go-parallel or the string train_helper.sh'''
+    with open(filepath) as fh:
+        for line in fh:
+            if 'srs-go-parallel' in line or 'train_helper.sh' in line:
+                return True
+    return False
+
+def get_times(path):
+    try:
+        with open(path) as fh:
+            times = fh.readlines()
+    except IOError:
+        return (None, None)
+
+    try:
+        st = dparser.parse(times[0])
+    except IndexError:
+        st = None
+
+    try:
+        et = dparser.parse(times[1])
+    except IndexError:
+        et = None
+
+    return (st, et)
+    
+def find_failed(expdir):
+    '''Recusively look for a failed step.'''
+    for filepath in stepfile_iterator(expdir):
+        (dirstep, stepname) = os.path.split(filepath)
+        if os.path.exists('%s/SRS-GO/logs/FAILED.%s'%(dirstep, stepname)):
+            return filepath
+    return None
+
+def stepfile_iterator(directory):
+    '''Create an iterator that goes through the file steps in order. This should probably be moved to srs.py'''
+    for fname in sorted([f for f in os.listdir(directory) if f.startswith('step') and not f.endswith('~')]):
+        full_path = os.path.join(directory, fname)
+        if os.path.isdir(full_path):
+            for entry in stepfile_iterator(full_path):
+                yield entry
+        else:
+            yield full_path
+        
+        
+def find_in_progress(directory):
+    '''Recusively find the deepest IN-PROGRESS file or directory.'''
+    found=None
+    for logfile in os.listdir('%s/SRS-GO/logs'%(directory)):
+        result=re.match('IN-PROGRESS\.(step.*)', logfile)
+        if result is not None:
+            step = result.group(1)
+            steppath = os.path.join(directory, step)
+            found = steppath
+            if os.path.isdir(steppath):
+                newfound = find_in_progress(steppath)
+                if newfound is not None:
+                    found = newfound
+                break
+            else:
+                break
+    return found            
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

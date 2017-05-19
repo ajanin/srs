@@ -1,0 +1,24 @@
+Notes on stuff we should do to make SRS more portable.
+
+srs-clean-orphans should use srs-go.config to figure out where the physical disks are.
+
+We need some way of enumerating what hosts might have local storage, probably in srs-go.config.
+
+Add variable to srs-go.config that controls how clean up works (e.g. ssh $HOST srs-go -cleanall).
+
+Add variable to srs-go.config that contains "run-command" (or whatever we end up using as the abstract launching tool). E.g. "srs_go_run_command /u/drspeech/share/bin/run-command -attr x86_64-linux").
+
+
+Ben and I were talking about how to port SRS to other systems over lunch, and I thought I should send out to this list while it was on my mind.
+
+One big issue with running srs-go-parallel elsewhere is how to schedule jobs on a cluster. Right now srs-go-parallel is hardwired to call "run-command". You can set an environment variable to cause run-command to direct to the slurm or customs pool.
+
+I think a better solution would be to add a variable to srs-go.config e.g. "srs_go_run_command /u/drspeech/share/bin/run-command -attr x86_64-linux -attr tscratch_tmp". Then people can plug in a command-line compatible version of run-command to launch elsewhere.
+
+The question is if we should continue to use run-command as the "abstract" layer. In other words, should we have the command that launches jobs take the same arguments as run-command (e.g. -J 12 -attr 2cpus -attr 3gig), change to some other interface (e.g. -j 12 -m 3g -c 2), or require it to take an SRS-style config file (with config vars e.g. njobs, ncpus, memory)?
+
+Any thoughts?
+
+  Adam
+
+

@@ -1,0 +1,31 @@
+This document outlines some of the more advanced features of srs-go
+in more detail. It assumes you have already read and understood
+srs-go-tutorial.txt, srs-config-tutorial.txt, and environment.txt.
+
+----------------------------------------------------------------------
+Details on Restart Logic
+
+The purpose of srs-go -restart is to rerun an experiment with mostly the same
+settings as a previous run. If you want to change most or all of the
+settings, you should probably do a fresh run from the template.
+
+When you specify -restart, srs-go basically ignores the DONE flags
+that steps produce when they complete successfully (return zero status
+for file steps and have all substeps succeed for directory steps).
+This means that all steps will execute again. This can sometimes have
+unexpected side effects depending on how steps are written. Some
+things to watch for:
+
+1). Steps that execute code conditioned on the existence of files.
+It is usually best for step writers to avoid this, since a basic
+philosophy of srs-go is that file steps either succeed or fail;
+partial success isn't supported.
+
+2). Steps that conditionally write output config files. After a step
+completes execution, srs-go checks if there's an output config
+file. If there isn't, it will generate the default one that simply
+includes the input config file. Note that there are two reasons why an
+input config file might exist: a) The step wrote it; b) A *previous*
+run of the step wrote it. Srs-go does NOT delete previous config files
+even if you specify -restart since the whole point of -restart rather
+than running a new experiment is to duplicate previous settings.

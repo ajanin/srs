@@ -1,0 +1,9 @@
+#!/bin/sh
+inconfig=$1
+outconfig=$2
+eval `srs-config -c $inconfig -dumpsh`
+echo step000 >> $outfile
+echo v1 >> $outfile
+echo $v1 >> $outfile
+echo v2 >> $outfile
+echo $v2 >> $outfile

@@ -1,0 +1,136 @@
+This file is a collection of miscellaneous tips for using SRS, perhaps as a "tip of the day".
+
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+
+If you find yourself frequently overriding config variables used by srs-go, you can put them in a config file in your home directory ~/.srs-go.config. This is read after everything on srs-go's command line, but before the site srs-go.config file. It's ideal if you want data storage directories under SRS-GO/data to point to somewhere other than the default.
+
+----------------------------------------------------------------------
+
+You can set the environment variable SRS_GO_CONFIG to a colon-separated list of paths to config files. These config files are read after everything on srs-go's command line, but before the user config file in ~/.srs-go.config and the site config file.
+
+----------------------------------------------------------------------
+
+The order that srs-go reads configs is:
+
+1). The "extra config" positional arguments to srs-go from left to right.
+2). Config files specified on srs-go's command line with -config from left to right.
+3). Config files on the colon-separated list in the environment variable SRS_GO_CONFIG from left to right.
+4). The user's config file in ~/.srs-go.config.
+5). The site config file in $BINDIR/srs-go.config, where $BINDIR is the directory where srs-go lives.
+
+----------------------------------------------------------------------
+
+When srs-go copies a template to an experiment directory, symbolic links are resolved. This ensures that the experiment directory doesn't change if the template changes, but can be confusing if you're just looking at an experiment directory. Template writers should be aware of this, and use naming conventions to help the reader.
+
+----------------------------------------------------------------------
+
+When you INCLUDE a config file, the path is resolved relative to where the source config file is, not relative to the current working directory. Example:
+
+> pwd
+/u/drspeech/data/swordfish
+
+> cat /u/janin/test/subdir1/example1.config
+INCLUDE example2.config
+
+This INCLUDE will look for example2.config in /u/janin/test/subdir1/example2.config rather than /u/drspeech/data/swordfish/example2.config.
+
+----------------------------------------------------------------------
+
+To use a dollar sign in config value, just use $$.
+
+unit_cost $$102.10
+
+----------------------------------------------------------------------
+
+You can change where the SRS-GO/data directories are physically stored using the config variables srs_go_data_path_scratch_local_ttmp, srs_go_data_path_scratch_ttmp, and/or srs_go_data_path_scratch. They should be paths to writable directories of the appropriate type. For example, at ICSI srs_go_data_path_scratch_local_ttmp is /tscratch/tmp.
+
+----------------------------------------------------------------------
+
+You can specify the template directory to srs-go either in the -template command line argument or the config variable srs_go_template. If both are provided, the command line -template argument takes precedence.
+
+----------------------------------------------------------------------
+
+srs-go and srs-config can take multiple -config command line arguments. They're read left to right (i.e. the earlier ones take precedence over the later ones).
+
+----------------------------------------------------------------------
+
+A very common pattern for handling default values for config variables is to store defaults in a file called "default.config", and then read using e.g.:
+
+srs-config -dumpsh -config in.config -config default.config
+
+This way, any config variables specified in in.config take precedence over those in default.config.
+
+----------------------------------------------------------------------
+
+srs-config can dump all variables in a bunch of formats. This is useful for scripting languages and is much more efficient than accessing config variables one at a time. Example in bash:
+
+> srs-config -dumpsh -config test1.config
+CorpusDir='/u/drspeech/data/switchboard'
+corpus_audio_dir='/u/drspeech/data/switchboard/audio'
+corpus_trans_dir='/u/drspeech/data/switchboard/trans'
+
+> echo $CorpusDir
+
+> eval `srs-config -dumpsh -config test1.config`
+
+> echo $CorpusDir
+/u/drspeech/data/switchboard
+
+----------------------------------------------------------------------
+
+Most of the -dump options to srs-config take a prefix argument. This can help with namespace pollution. E.g.:
+
+> srs-config -dumpsh -config test1.config
+CorpusDir='/u/drspeech/data/switchboard'
+corpus_audio_dir='/u/drspeech/data/switchboard/audio'
+corpus_trans_dir='/u/drspeech/data/switchboard/trans'
+
+> srs-config -dumpsh CONFIG_ -config test1.config
+CONFIG_CorpusDir='/u/drspeech/data/switchboard'
+CONFIG_corpus_audio_dir='/u/drspeech/data/switchboard/audio'
+CONFIG_corpus_trans_dir='/u/drspeech/data/switchboard/trans'
+
+----------------------------------------------------------------------
+
+srs-go handles passing config files between steps. It stores these config files in SRS-GO/config/OUTCONFIG.stepName. For example, the config file generated by step020.compute_features/step030.compute_pitch is stored in step020.compute_features/SRS-GO/config/OUTCONFIG.step030.compute_pitch.
+
+----------------------------------------------------------------------
+
+srs-go generates an initial config file from its argument and stores it in SRS-GO/config/MASTER.config. This forms the start of the chain of INCLUDEs that srs-go passes to the template's steps.
+
+----------------------------------------------------------------------
+
+There are several log files in the top-level SRS-GO/log directory. For example, COMMANDLINE.log stores the command line that invoked srs-go; HOSTNAME.log stores which host the command was executed on.
+
+----------------------------------------------------------------------
+
+Every file step stores its STDOUT and STDERR to a log file in SRS-GO/logs. For example, the STDERR of file step step020.compute_features/step030.compute_pitch would be in step020.compute_features/SRS-GO/logs/STDERR.step030.compute_pitch.
+
+----------------------------------------------------------------------
+
+Each file step stores a starting time stamp and an ending time stamp to a log file in SRS-GO/logs. For example, the time stamps for step020.compute_features/step030.compute_pitch are stored in step020.compute_features/SRS-GO/logs/TIMES.step030.compute_pitch.
+
+----------------------------------------------------------------------
+
+srs-go keeps track of the status of a step by storing special files in SRS-GO/logs. For example, when step020.compute_features/step030.compute_pitch is executed, srs-go creates a file step020.compute_features/SRS-GO/logs/IN-PROGRESS.step030.compute_pitch. When the step finishes, it deletes this file. If the step finished with no errors, it creates step020.compute_features/SRS-GO/logs/DONE.step030.compute_pitch. If it finishes with errors, it creates step020.compute_features/SRS-GO/logs/FAILED.step030.compute_pitch.
+
+srs-go uses these status files when a template is restarted to detect which steps need to be rerun.
+
+----------------------------------------------------------------------
+
+srs-go considers a file or directory a step if it starts with the exact string "step". Everything after is up to the template writer. The steps are executed in lexicographic order.
+
+We recommend using a number and a descriptive text string (e.g. step030.compute_pitch).
+
+Currently, only plain ASCII for step names is supported.
+
+----------------------------------------------------------------------
+
+Steps in an srs-go template communicate using config files. It is common for a step to read an input config, modify it, and write it out.
+
+An example is for first pass one vs. second pass decoding. The code for the two passes is exactly the same; only the input config file differs. There's a step right before the decode that reads its input config, modifies it depending on if its doing first pass or second pass decoding, and then writes its output config. 
+
+This use of config variables is an SRS step's equivalent to command line arguments.
+
+----------------------------------------------------------------------

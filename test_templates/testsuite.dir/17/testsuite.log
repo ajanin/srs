@@ -1,0 +1,21 @@
+#                             -*- compilation -*-
+17. testsuite.at:313: testing Simple srs-go-parallel test ...
+/testsuite.at:314: seq -f "val1.%g" 3 > v1
+/testsuite.at:315: seq -f `pwd`/out%g 3 > out
+/testsuite.at:316: srs-go-parallel -template $at_dir/simple -dir exp.test -pvar v1 v1 -pvar outfile out -- v2 val2 > test.log 2>&1
+/testsuite.at:317: cat out1
+--- /dev/null	2015-06-29 13:10:35.031272386 -0700
++++ /n/banquet/da/janin/projects/swordfish/svn/src/srs/test_templates/testsuite.dir/at-groups/17/stderr	2015-07-26 10:03:01.871656000 -0700
+@@ -0,0 +1 @@
++cat: out1: No such file or directory
+--- -	2015-07-26 10:03:01.907695562 -0700
++++ /n/banquet/da/janin/projects/swordfish/svn/src/srs/test_templates/testsuite.dir/at-groups/17/stdout	2015-07-26 10:03:01.895536000 -0700
+@@ -1,6 +1 @@
+-step000
+-v1
+-val1.1
+-v2
+-val2
+ 
+/testsuite.at:317: exit code was 1, expected 0
+17. testsuite.at:313: 17. Simple srs-go-parallel test (testsuite.at:313): FAILED (testsuite.at:317)

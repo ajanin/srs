@@ -1,0 +1,19 @@
+"To Do" for srs-go-parallel
+
+The level of abstraction in srs-go-parallel is unlikely to be generally useful. It may be more trouble than it's worth over ad-hoc parallelism (e.g. GNU parallel). That being said, here are some outstanding issues:
+
+Support multiple config files.
+
+Rethink what to do if dest directory is not empty. If there are no failed tasks, overwrite should be fine. -overwrite to clean first?
+
+When running -cleandata, batch up all the tasks per machine
+and execute in one call. Probably use pdsh.
+
+Unify subdirectory code and make it more general (e.g. read
+template from config file).
+
+Check that I use "task" and "batch" consistently
+
+Email notification.
+
+

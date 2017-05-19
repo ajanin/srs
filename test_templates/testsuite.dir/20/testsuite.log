@@ -1,0 +1,8 @@
+#                             -*- compilation -*-
+20. testsuite.at:381: testing Large streaming config srs-go-parallel-litestep test ...
+/testsuite.at:382: seq -f "val1.%g" 3 > v1
+/testsuite.at:383: seq -f `pwd`/out%g 3 > out
+/testsuite.at:384: seq -f '%04g' 1 3999 | xargs -INUM printf 'varNUM valNUM\n' > test.config
+/testsuite.at:385: srs-go-parallel-litestep -template $at_dir/dumpconfig -pvar v1 v1 -pvar outfile out -config test.config -stream-config > test.log 2>&1
+/testsuite.at:385: exit code was 255, expected 0
+20. testsuite.at:381: 20. Large streaming config srs-go-parallel-litestep test (testsuite.at:381): FAILED (testsuite.at:385)

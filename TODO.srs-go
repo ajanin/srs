@@ -1,0 +1,32 @@
+"To Do" for srs-go.
+
+More test cases for conditional steps.
+Fix conditional steps so that DEFAULT is called if variable is undefined.
+
+
+Email notification.
+
+Add outconfig for directory steps.
+
+Right now, copying from the template to dir requires dir be empty.
+This should be changed so you can preset something in dir. If so,
+we'll have to check for SRS-GO to see if it's been run before.
+Maybe provide a -overwrite flag?
+
+Move curstep to State
+
+Perhaps data directories should be created when the template is
+copied rather than when a directory step is executed? This may
+be a problem for steps that change templates dynamically.
+
+Step cleanup when -clean is called?
+
+Calling a directory step should probably be exactly the same as
+calling srs-go directly on that directory. Currently, the top level is
+special.
+
+Add config variable to control what is a step. This would be useful
+e.g. to exclude files that coincidentally start with "step". For
+example, Kaldi wants there to be a directory called "steps" that lots
+of scripts refer to. Currently, there's no easy way to tell srs-go to
+NOT treat this directory as a step.

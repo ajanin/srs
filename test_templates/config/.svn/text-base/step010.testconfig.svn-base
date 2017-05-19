@@ -1,0 +1,16 @@
+#!/bin/bash
+
+{
+set -o nounset
+set -o errexit
+
+inconfig=$1
+outconfig=$2
+
+outfile=`srs-config -c $inconfig outfile`
+v1=`srs-config -c $inconfig v1`
+c1=`srs-config -c $inconfig c1`
+
+echo v1 $v1 > $outfile
+echo c1 $c1 >> $outfile
+}

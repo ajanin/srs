@@ -1,0 +1,12 @@
+Tutorial for the System for Running Systems template execution tool.
+Currently, there is only a command line tool. If there's demand,
+we can break it up into a library and a command line tool.
+
+----------------------------------------------------------------------
+
+srs-go-tutorial.txt
+
+Tutorial for the System for Running Systems template execution command
+line tool.
+
+----------------------------------------------------------------------

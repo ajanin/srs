@@ -1,0 +1,4 @@
+#!/bin/sh
+# $Id$
+
+srs-go -template $SWORDFISH_ROOT/templates/srsrs $@

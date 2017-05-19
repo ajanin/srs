@@ -1,0 +1,3 @@
+srs-go-parallel-litestep:ERROR: run-command:stderr: salloc: Granted job allocation 4112237
+srs-go-parallel-litestep:ERROR: run-command:stderr: parallel: Command line too long (408702 >= 131071) at number 1: sh -c '(echo v1 val1.1; echo outfile /n/banquet/da...
+srs-go-parallel-litestep:ERROR: run-command:stderr: salloc: Relinquishing job allocation 4112237

@@ -1,0 +1,96 @@
+Random justifications and rationale for how the srs-config system
+works.
+
+----------------------------------------------------------------------
+
+Q: Why not XML or some other more structured approach?
+
+A: We really, really want people to use config files, so the lowest
+possible barrier to entry seemed appropriate, i.e. plain text.
+
+Q: Why not an existing format like windows .ini files, especially
+since Python supports them?
+
+A: The standard .ini format is missing includes and macros, both
+features we really want. Using *almost* .ini format seems a recipe
+for confusion.
+
+Q: But .ini files have a nice naming hierarchy using sections!
+
+A: We may add that if there's demand. For now, we'll just encourage
+naming conventions.
+
+----------------------------------------------------------------------
+
+Q: Why not use SRI's metadb?
+
+A: We wanted better ability to trace and debug config files, plus
+doc strings from comments.
+
+Q: Okay, why not at least use SRI's format for config files?
+
+A: Our format is pretty close (maybe too close?). The macros work
+slightly differently to avoid some of the evil uses of macros that are
+unreadable and unmaintainable. See the rest of this doc.
+
+----------------------------------------------------------------------
+
+Q: Why are variables set the FIRST time they're encountered? This is
+counter to e.g. scripting languages.
+
+A: It seems easier for a human to follow, since they can start at the
+top of a config file, and read down until they see the first
+occurrence, and then stop. No need to keep tracing.
+
+Q: How about macros? Wouldn't it be easier if the macro CLOSEST to the
+use is the one that gets used?
+
+A: Perhaps, but I felt that having variables work one way and macros
+work another would be confusing. Also, the general principle of more
+specific files overriding less specific ones would be broken - you'd
+need one set of INCLUDEs for macros and one for variables.
+
+Q: I'd like to have all the values of a variable appended together
+rather than just the first. Why isn't that available?
+
+A: It's on the "To Do" list.
+
+----------------------------------------------------------------------
+
+Q: Why do macro uses require $? There are lots of clever ways
+to do stuff if they were bare. For example:
+
+DEFINE switchboard icsimc
+INCLUDE switchboard.config
+...
+trans_dir /u/drspeech/switchboard/trans
+
+Now trans_dir is automagically /u/drspeech/icsimc/trans!
+
+A: This seems very hard to understand and debug. You have to remember
+that switchboard was a macro. By requiring $switchboard instead, you
+can always tell when you have to go looking for its definition.
+
+Q: Can you add tracing for when a macro is used?
+
+A: If there's demand, we can figure out a way. Right now, it's done
+with a Python library (string.Template), which doesn't tell us when a
+substitution is done.
+
+----------------------------------------------------------------------
+
+Q: Why are doc strings from comments done that way?
+
+A: It was a trade off between complexity and ease of use. We
+considered *requiring* doc strings, but discarded that as too large
+a barrier of entry for quick experiments. Similarly, more structured
+comments were discarded in favor of a very simple semantic of just
+using the block right above the variable.
+
+Q: How about doc strings for macros, section level comments, and file
+level comments?
+
+A: I'm not sure how you'd query them, but if there's demand we can
+revisit and come up with an interface.
+
+----------------------------------------------------------------------

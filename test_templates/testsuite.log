@@ -1,0 +1,142 @@
+## ---------------------------------------- ##
+## srs-go v0.4 test suite: Templates tests. ##
+## ---------------------------------------- ##
+
+testsuite: command line was:
+  $ testsuite 
+
+## --------- ##
+## Platform. ##
+## --------- ##
+
+hostname = barley.icsi.berkeley.edu
+uname -m = x86_64
+uname -r = 2.6.32-504.23.4.el6.x86_64
+uname -s = Linux
+uname -v = #1 SMP Fri May 29 10:16:43 EDT 2015
+
+/usr/bin/uname -p = unknown
+/bin/uname -X     = unknown
+
+/bin/arch              = x86_64
+/usr/bin/arch -k       = unknown
+/usr/convex/getsysinfo = unknown
+/usr/bin/hostinfo      = unknown
+/bin/machine           = unknown
+/usr/bin/oslevel       = unknown
+/bin/universe          = unknown
+
+PATH: /usr/local/lang/cuda-5.0/bin
+PATH: /u/drspeech/opt/kaldi/kaldi-trunk/src/bin
+PATH: /u/janin/lib/virtual_python27/bin
+PATH: /opt/rh/python27/root/usr/bin
+PATH: /u/janin/projects/swordfish/svn/src/srs
+PATH: /u/drspeech/projects/swordfish/ThirdParty/F4DE/bin
+PATH: /u/drspeech/projects/swordfish/x86_64-linux/bin
+PATH: /u/drspeech/projects/swordfish/share/bin
+PATH: /u/drspeech/opt/htk-latest/bin.linux
+PATH: /u/drspeech/opt/OpenFst/latest/x86_64-linux/bin
+PATH: /u/janin/bin/i586-linux
+PATH: /u/janin/bin
+PATH: /u/drspeech/src/srilm/devel/bin/i686-m64
+PATH: /u/drspeech/x86_64-linux/bin
+PATH: /u/drspeech/i586-linux/bin
+PATH: /u/drspeech/share/bin
+PATH: /u/drspeech/opt/eval2000/system/bin
+PATH: /u/drspeech/opt/eval2000/system/bin/i686-m64
+PATH: /u/drspeech/opt/eval2000/system/bin/i686
+PATH: /bin
+PATH: /usr/bin
+PATH: /usr/sbin
+PATH: /usr/local64/lang/R-2.11.1/bin
+PATH: /usr/local64/bin
+PATH: /usr/local/bin
+PATH: /usr/local/gnu/bin
+PATH: /usr/local/etc
+PATH: /u/drspeech/opt/jython
+PATH: /n/banquet/da/janin/projects/swordfish/svn/src/srs/test_templates
+
+## ---------------- ##
+## Tested programs. ##
+## ---------------- ##
+
+## ------------------ ##
+## Running the tests. ##
+## ------------------ ##
+testsuite: starting at: Sun Jul 26 10:00:56 PDT 2015
+1. Test config1 (testsuite.at:24): ok     (0m0.118s 0m0.216s)
+2. Test config2 (testsuite.at:31): ok     (0m0.117s 0m0.077s)
+3. Test config3 (testsuite.at:38): ok     (0m0.110s 0m0.079s)
+4. Simple run to completion (testsuite.at:60): ok     (0m0.319s 0m0.271s)
+5. Fail in a nested step (testsuite.at:76): ok     (0m0.219s 0m0.184s)
+6. Start in the middle (testsuite.at:91): ok     (0m0.243s 0m0.178s)
+7. Test rerunning templates (testsuite.at:105): ok     (0m0.770s 0m0.563s)
+8. -restart tests (testsuite.at:153): ok     (0m0.644s 0m0.507s)
+9. -to tests (testsuite.at:184): ok     (0m0.363s 0m0.291s)
+10. Timeout and fail (testsuite.at:210): ok     (0m0.110s 0m0.065s)
+11. Retry then fail (testsuite.at:215): ok     (0m0.197s 0m0.176s)
+12. Retry successfully with timeouts (testsuite.at:220): ok     (0m0.523s 0m0.438s)
+13. SWITCH test 1 (testsuite.at:233): ok     (0m0.409s 0m0.395s)
+14. SWITCH default test (testsuite.at:250): ok     (0m0.456s 0m0.366s)
+15. SWITCH default failure test (testsuite.at:268): ok     (0m0.370s 0m0.334s)
+16. SWITCH restart test (testsuite.at:280): ok     (0m0.665s 0m0.573s)
+18. Simple srs-go-parallel-litestep test (testsuite.at:340): ok     (0m0.145s 0m0.082s)
+19. Medium streaming config srs-go-parallel-litestep test (testsuite.at:364): ok     (0m0.455s 0m0.156s)
+testsuite: ending at: Sun Jul 26 10:05:25 PDT 2015
+testsuite: test suite duration: 0h 4m 29s
+
+## ------------- ##
+## Test results. ##
+## ------------- ##
+
+ERROR: All 20 tests were run,
+2 failed unexpectedly.
+
+## ------------------------ ##
+## Summary of the failures. ##
+## ------------------------ ##
+Failed tests:
+srs-go v0.4 test suite: Templates tests test groups:
+
+ NUM: FILE-NAME:LINE     TEST-GROUP-NAME
+      KEYWORDS
+
+  17: testsuite.at:313   Simple srs-go-parallel test
+  20: testsuite.at:381   Large streaming config srs-go-parallel-litestep test
+
+## ---------------------- ##
+## Detailed failed tests. ##
+## ---------------------- ##
+
+#                             -*- compilation -*-
+17. testsuite.at:313: testing Simple srs-go-parallel test ...
+/testsuite.at:314: seq -f "val1.%g" 3 > v1
+/testsuite.at:315: seq -f `pwd`/out%g 3 > out
+/testsuite.at:316: srs-go-parallel -template $at_dir/simple -dir exp.test -pvar v1 v1 -pvar outfile out -- v2 val2 > test.log 2>&1
+/testsuite.at:317: cat out1
+--- /dev/null	2015-06-29 13:10:35.031272386 -0700
++++ /n/banquet/da/janin/projects/swordfish/svn/src/srs/test_templates/testsuite.dir/at-groups/17/stderr	2015-07-26 10:03:01.871656000 -0700
+@@ -0,0 +1 @@
++cat: out1: No such file or directory
+--- -	2015-07-26 10:03:01.907695562 -0700
++++ /n/banquet/da/janin/projects/swordfish/svn/src/srs/test_templates/testsuite.dir/at-groups/17/stdout	2015-07-26 10:03:01.895536000 -0700
+@@ -1,6 +1 @@
+-step000
+-v1
+-val1.1
+-v2
+-val2
+ 
+/testsuite.at:317: exit code was 1, expected 0
+17. testsuite.at:313: 17. Simple srs-go-parallel test (testsuite.at:313): FAILED (testsuite.at:317)
+
+#                             -*- compilation -*-
+20. testsuite.at:381: testing Large streaming config srs-go-parallel-litestep test ...
+/testsuite.at:382: seq -f "val1.%g" 3 > v1
+/testsuite.at:383: seq -f `pwd`/out%g 3 > out
+/testsuite.at:384: seq -f '%04g' 1 3999 | xargs -INUM printf 'varNUM valNUM\n' > test.config
+/testsuite.at:385: srs-go-parallel-litestep -template $at_dir/dumpconfig -pvar v1 v1 -pvar outfile out -config test.config -stream-config > test.log 2>&1
+/testsuite.at:385: exit code was 255, expected 0
+20. testsuite.at:381: 20. Large streaming config srs-go-parallel-litestep test (testsuite.at:381): FAILED (testsuite.at:385)
+
+

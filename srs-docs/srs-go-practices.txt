@@ -1,0 +1,83 @@
+This document lists contains suggestions for writing templates
+and config files that may be of use to people.
+
+----------------------------------------------------------------------
+Bash Script Steps
+
+It is very common for a step to be script that wraps calls to
+executables. Bash is a good choice since it's widely available.
+Below is a skeleton that provides an outline for a bash step.
+The following sections describe each part in more detail.
+
+----------------------------------------------------------------------
+ 1  #!/bin/sh
+ 2  #
+ 3  # Author, title, date, version, version info, description
+ 4  #
+ 5  {
+ 6  set -o nounset
+ 7  set -o errexit
+ 8  set -o pipefail
+ 9
+10  inconfig=$1
+11  outconfig=$2
+12
+13    ...
+14  tmpdir=`srs-config -c $inconfig -c default.config tmpdir`
+15  tmpfile=$tmpdir/file.tmp
+16    ...
+17  command > $tmpfile
+18    ...
+19  echo tmpfile $tmpfile > $outconfig
+20  echo INCLUDE $inconfig >> $outconfig
+21  exit
+22  }
+----------------------------------------------------------------------
+
+Early Failure
+Lines 6,7,8
+
+Generally, you want the whole script to fail if any call within the
+script fails. This is not completely possible with bash, but you can
+get a long way with a few commands:
+
+set -o nounset    # Unset variables cause shell to fail
+set -o errexit    # Fail on errors of simple commands
+set -o pipefail   # Fail on errors in pipes
+
+Reading the Entire Script
+Lines 5,21,22
+
+If you wrap the entire script in curly braces, the entire script will
+be read into memory rather than reading and executing one line at a
+time. This helps prevent problems with the script itself getting
+modified while it's being run.
+
+Handling Config Files
+
+
+(Lines 10, 11): Each step should read a config file from its first
+argument and write a config file to its second argument. Setting them
+early in the script is a good idea.
+
+(Line 14): Default values can be handled in many ways. One good method
+is to write a default.config config file as part of the step and use
+it as an additional argument to srs-config after the command line
+config file. This is often better than using srs-config -default since
+it provides a central place to store defaults.
+
+(Line 14): If you need to generate an intermediate file, you should
+allow the caller to override where it's stored. In this example,
+tmpdir is used both as a config variable and the variable name in the
+script. A good default might be SRS-GO/data/scratch_ttmp. Doing it
+this way allows the user to override to e.g. "." to keep temporary
+files on backed up disk.
+
+(Lines 15,17,19): If you create intermediate files, it's a good idea
+to store the paths in a bash variable so you don't have to copy code
+to more than one place. Then save it to the output config so later
+steps can access it. 
+
+(Lines 10,11,20): Generally, you'll want to chain the output config
+file to the input config file so that future steps can access config
+files from previous steps (and the command line).

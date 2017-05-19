@@ -1,0 +1,151 @@
+This document is a simple tutorial for using the System for Running
+Systems tool "srs-go-parallel".
+
+The example files can be found in:
+$SWORDFISH_ROOT/templates/examples/srs-go-parallel-example1
+
+At ICSI, SWORDFISH_ROOT is /u/drspeech/projects/swordfish
+
+This tutorial assumes you are already familiar with srs-config
+and srs-go. If you are not, you should read those tutorials first.
+
+The executables are in $SWORDFISH_ROOT/share/bin, which must be in
+your path. Python libraries are in $SWORDFISH_ROOT/share/lib/python,
+which must be in your PYTHONPATH. It has only been tested with
+python2.7, so you should be sure whichever python is first in your
+path is python2.7.
+
+This tutorial was designed for pedagogic reasons. It illustrates some
+features of the srs-go-parallel system, and is not meant to be the
+most efficient or even a rational method of achieving the task. The
+steps also are woefully lacking in error checking, and should NOT be
+used as models for writing steps.
+
+----------------------------------------------------------------------
+
+There are many ways to run jobs in parallel. Within a step of
+a template, you can call jobs in parallel yourself (e.g. using
+run-command). You could run multiple templates in parallel by using
+e.g. "run-command srs-go ... ".
+
+The tool "srs-go-parallel" implements one particular methodology,
+where a template is run multiple times in parallel. A perfect example
+of this is if you already have a template for srs-go that operates on
+one file, and you want to run it on a list of files in parallel.
+
+An example of a template that operates on a single file is in
+$SWORDFISH_ROOT/templates/examples/srs-go-parallel-example1. It takes
+an input file specified by the config variable input_file, performs a
+character substitution with "tr", and writes to the path specified in
+output_file. For example, if we wanted to convert this file to upper
+case (the default), we could do:
+
+srs-go -template $SWORDFISH_ROOT/templates/examples/srs-go-parallel-example1 -dir exp01 input_file $SWORDFISH_ROOT/doc/tutorials/srs-go-parallel/srs-go-parallel-tutorial.txt output_file ~/uppercase.txt
+
+After execution, there will be a file in your home directory called
+uppercase.txt.
+
+Now suppose you want to perform this operation on all the tutorial
+files. You start by producing a list of the input files and output
+files:
+
+find $SWORDFISH_ROOT/doc/tutorials -name '*-tutorial.txt' > input.list
+cat input.list | xargs -n1 basename | xargs printf "$PWD/%s\n" > output.list
+
+Now, we want to run the template srs-go-parallel-example1 in parallel,
+where each time, we set input_file to a line of input.list and
+output_file to the corresponding line of output.list. Each such
+invocation is termed a "task".
+
+srs-go-parallel -template $SWORDFISH_ROOT/templates/examples/srs-go-parallel-example1 -dir exp02 -pvar input_file input.list -pvar output_file output.list
+
+Once the command completes, there will be files in the current
+directory with uppercase versions of the tutorials. There will also
+be an "exp02" directory. Since there were no errors, most of exp02 is
+empty.
+
+Notice that most of the command line is the same as the call for a
+single file. The most important differences are the -pvar arguments.
+These are "parallel variables", and must be a variable name followed
+by a file name. It does exactly what we want: spawns a new task for
+each line of the files, binding the named variable to each line of the
+file. 
+
+Now let's say you want to convert to lowercase instead. Just like
+srs-go, srs-go-parallel takes extra arguments, config names and values
+that are set before any others:
+
+srs-go-parallel -template $SWORDFISH_ROOT/templates/examples/srs-go-parallel-example1 -dir exp03 -pvar input_file input.list -pvar output_file output.list -- tr_source 'A-Z' tr_target 'a-z'
+
+The uppercase versions have now been replaced with lowercase, and
+there's a new directory "exp03" with the tasks.
+
+----------------------------------------------------------------------
+Batches
+
+If your task is short, it may be inefficient to parallelize over
+tasks. Instead, you'll want to group tasks into batches, and run the
+batches in parallel. For example, if you want to run three serial
+tasks per batch, you can add -batchsize 3 to the command line.
+
+You can also add -njobs to indicate how many batches to run at a time.
+Any remaining are queued for execution once the current set finish.
+Note that srs-go-parallel will not return until all the jobs complete.
+
+The batch size defaults to 10, and the number of jobs defaults to 12.
+
+----------------------------------------------------------------------
+Cleaning Up
+
+By default, srs-go-parallel cleans successful tasks as they complete.
+It is up to you to make sure data gets writen somewhere outside
+of the task subdirectories (usually by setting config variables
+appropriately). 
+
+You can manually clean an experiment by calling srs-go-parallel
+with -cleandata, in which case it will recurse through any task
+directories, cleaning up the data directories under them. If you call
+with -cleanall, it will first clean the data directories, and then
+delete everything else. Note that srs-go-parallel will ssh into the
+appropriate machine to clean the local directories. This process can
+be quite slow.
+
+----------------------------------------------------------------------
+Error Handling
+
+A task is considered to have failed if it returns a non-zero exit
+status. This will not prevent other tasks from running. You can
+instead cause srs-go-parallel to stop as soon as a task fails by using
+-exit-on-error. Failed tasks are recorded under the "failed_tasks"
+subdirectory described below.
+
+By default, tasks are deleted as long as they succeed. Only failed
+tasks are kept on disk. You can change this with the -preserve
+argument. If "-preserve all" is passed, no clean up happens. If
+"-preserve none", clean up happens even if a task fails. If "-preserve
+errors" (the default), successful tasks are cleaned, but failed tasks
+are preserved.
+
+----------------------------------------------------------------------
+File Organization
+
+srs-go-parallel will create the directory specified with the -dir
+argument. Under that directory (called the experiment directory),
+it will create a subdirectory "tasks" that hold in-processs and
+preserved tasks. The task subdirectories are valid srs-go experiment
+directories. As described above, the task directories by default get
+deleted upon success. Use -preserve to change this behavior.
+
+Also under the experiment directory will be a directory named
+failed_tasks. It contains symbolic links to the task directory
+for tasks that failed (returned non-zero exit status).
+
+The "batches" subdirectory contain scripts that execute a single
+batch, while run_batches.cmds is a list of these files.
+
+Finally, run-command.log contains the output from run-command, and
+will contain error messages.
+
+----------------------------------------------------------------------
+
+See srs-go-parallel -h for a complete list options.

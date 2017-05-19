@@ -1,0 +1,6 @@
+See TODO.srs-go and TODO.srs-go-parallel for specific TODOs for those programs.
+
+----------------------------------------------------------------------
+Make srs-clean-orphans use read the current config in the same way srs-go
+does. (Probably should move that logic to the library)
+

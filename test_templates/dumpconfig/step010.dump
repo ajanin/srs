@@ -1,0 +1,23 @@
+#!/usr/bin/env perl
+#
+# Dump the config file to path given by "outfile". The keys will
+# be in sorted order.
+
+use strict;
+use warnings;
+use FileHandle;
+
+my(%C, $inconfig, $outconfig, $fh);
+
+$inconfig = shift;
+$outconfig = shift;
+
+my $str = `srs-config -dumpperl C -c $inconfig`;
+eval $str;
+
+$fh = new FileHandle(">$C{outfile}") or die "Couldn't create output file $C{outfile}: $!";
+foreach my $key (sort keys(%C)) {
+    print $fh "$key $C{$key}\n";
+}
+$fh->close();
+

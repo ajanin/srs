@@ -1,0 +1,213 @@
+This document is a simple tutorial for using the System for Running
+Systems tool "srs-go". 
+
+The example files can be found in:
+$SWORDFISH_ROOT/templates/examples/srs-go-example1
+
+At ICSI, SWORDFISH_ROOT is /u/drspeech/projects/swordfish
+
+The executables are in $SWORDFISH_ROOT/share/bin, which must be in
+your path. Python libraries are in $SWORDFISH_ROOT/share/lib/python,
+which must be in your PYTHONPATH. It has only been tested with
+python2.7, so you should be sure whichever python is first in your
+path is python2.7.
+
+This tutorial was designed for pedagogic reasons. It illustrates
+some features of the srs-go system, and is not meant to be the most
+efficient or even a rational method of achieving the task. The steps
+also are woefully lacking in error checking, and should NOT be used as
+models for writing steps.
+
+----------------------------------------------------------------------
+Setting Up a Template
+
+Say you are given the task of finding all the simple "#define"s in a
+set of C/C++ include files, and listing all possible values they could
+take. This naturally divides into a few steps.
+
+1) Determining which files to operate upon
+2) Extracting out the #define lines
+3) Normalizing the lines
+
+It's a good idea to leave gaps in your step numbering in case you need
+to add intermediate steps later. You should also pick a descriptive
+string to include to help readers understand the step.
+
+step010.findfiles
+step020.extractdefs
+step030.normalize
+
+The steps can be any type of executable (e.g. perl, python, C, gawk).
+In this example, step030.normalize is perl, and the others are bash
+scripts.
+
+The srs-go system assumes that each steps takes two arguments: a path
+to the input config file and a path to where the step should write
+the output config file. Srs-go will automatically chain the output
+of one step to the input of the next (so that the second argument
+of step010.findfiles will be the same path as the first argument of
+step020.extractdefs). You can find the default config file for this
+example in defaults.config.
+
+Take a look at step010.findfiles. It uses srs-config to extract
+the directory to work on from the input config file variable
+"include_directory". It then writes an intermediate file
+"include.list" to the current directory containing a list of all the
+include files under that directory.
+
+The final part of step010.findfiles writes to the output config file.
+First, it defines a new config variable with where to find the list.
+This isn't strictly necessary, since you could hard code this in
+subsequent steps, but chaining in this way allows more flexibility (as
+will be shown in a later example). Next, it includes the input config
+file. This again is typical, and allows the user to override settings
+if desired in the initial config file. The output config file might
+look like the following after step010.findfiles is run:
+
+include_file_list include.list
+INCLUDE example.config
+
+Note that you need not worry about what the output config file is
+named -- naming is handled by the srs-go script.
+
+The next step is to extract all the #define lines in the files found
+in step010.findfiles. This is done in step020.extractdefs. Its
+structure is substantially similar to step010.findfiles. It sets the
+environment variable SRS_CONFIG so that subsequent calls to srs-config
+do not need the -config argument.
+
+Don't worry if you don't understand exactly how the line that starts
+with "cat $inclist | xargs" works. It just looks in all the files
+listed in $inclist for lines that start like #define SOMENAME,
+and dumps them to a file named rawdefs.txt.
+
+Next, step020.extractdefs generates the output config file with a new
+variable raw_definitions_file.
+
+The final step, step030.normalize, is written in perl, and performs
+simple normalization of the file. It removes extra whitespace and
+comments. It demonstrates writing a step in another language. Notice
+that it uses a config variable for where to store the results. It
+therefore does not need to write a config file (srs-go automatically
+generates an output config file that does nothing but include the
+previous step).
+
+----------------------------------------------------------------------
+Running srs-go.
+
+To actually run the step, you first need to pick a directory where the
+experiment will run. Let's call it exp01. Then call:
+
+srs-go -template $SWORDFISH_ROOT/templates/examples/srs-go-example1 -dir exp01 -config exp01/defaults.config
+
+It will create exp01 if it doesn't exist. Notice that we're just
+using the default template that comes with the example. You'll often
+either create a new config and INCLUDE the default config, or copy the
+default config and edit to your taste.
+
+The first thing srs-go does is to recursively copy all the files below
+the template to exp01. Then, for each file (or directory) that starts
+with the string "step", it executes the step. So after you type in the
+command, you can cd exp01, and cat normdefs.txt to see the result of
+running the entire experiment.
+
+Special files specific to the srs system are stored in the
+subdirectory SRS-GO under exp01. The "config" directory stores
+all the intermediate config files generated by the steps. For
+example, OUTCONFIG.step020.extractdefs contains the config file that
+step020.extractdefs produced.
+
+The "logs" subdirectory contains some status files, plus the standard
+output and standard error produced by each script. In our example,
+nothing is printed to stdout. However, a couple of files have output
+to stderr. At ICSI STDERR.step020.extractdefs produces an error
+message because /usr/include/postproc/postprocess.h is a link to a
+file that doesn't exist. However, since step020.extractdefs does not
+exit with an error code, srs-go does not consider this a failure and
+the script still runs to completion. The output from step030.normalize
+is because the script prints a warning when there's a #define with a
+name, but no value. In the example, the perl code does not exit with
+a non-zero exit status, so it does not halt the run.
+
+The other files in the "logs" directory track how far you've gotten
+in a run. If a file "DONE.stepX" exists, this means that stepX ran
+to completion. Otherwise, there would be a file "FAILED.stepX". If
+stepX starts, but is killed before it can finish, there will be a file
+"IN-PROGRESS.stepX". Finally, the file TIMES.stepX contains a
+timestamp with when stepX started and finished.
+
+If you call srs-go with an experiment directory that already exists,
+it will try to rerun any steps that previously failed. If, for
+example, you simply rerun the srs-go command above, it will quickly
+return without rerunning any steps (since they all succeeded). If you
+want srs-go to ignore the previous status and rerun regardless, just
+add "-restart" to the command line. Note that you can omit -template
+and -config in later runs; srs-go will use the previous values.
+
+You can override config variables by adding the name and the value
+to the end of the command line of srs-go. For example, to run on
+/usr/local/include instead of /usr/include:
+
+srs-go -template $SWORDFISH_ROOT/templates/examples/srs-go-example1 -dir exp02 -config exp01/defaults.config -- include_directory /usr/local/include
+
+----------------------------------------------------------------------
+Storing Intermediate Files
+
+Another feature srs-go provides is data storage for intermediate files
+that, at ICSI at least, are not backed up. You should use them for
+non-critical intermediate files that can be regenerated if necessary.
+
+First, there is networked vs. local storage. Networked storage is
+accessible from any machine; local storage is only available on the
+machine srs-go is currently running on. You should use local storage
+whenever you can, since it's generally faster and impacts other users
+less than networked storage. 
+
+The other distinction is known as ttmp vs. scratch. Although neither
+is backed up, ttmp is additionally deleted automatically if it hasn't
+been accessed within 45 days. You should use ttmp whenever the data
+will not be needed for more than a few weeks.
+
+srs-go creates links under the SRS-GO/data directory as follows:
+
+scratch_local_ttmp      Local ttmp
+scratch_ttmp            Network ttmp
+scratch                 Network scratch
+
+In the example above, the intermediate files include.list and
+rawdefs.txt could certainly be written to local disk, since we're not
+doing any distributed/parallel coding. In fact, unless you believe the
+input files themselves (e.g. /usr/include) are likely to change, you
+could write them to scratch_local_ttmp. For example, in step010, you
+could write:
+
+find $topdir -name '*.h' > SRS-GO/data/scratch_local_ttmp/include.list
+echo include_file_list SRS-GO/data/scratch_local_ttmp/include.list > $outconfig
+
+In fact, you should probably add a new variable to the config file
+that controls where each intermediate file is stored. E.g. in default.config:
+
+include_file_list SRS-GO/data/scratch_local_ttmp/include.list
+
+We leave it as an exercise to the reader to modify step010.findfiles
+to use the config variable (hint: you do not have to change any other
+step!).
+
+----------------------------------------------------------------------
+Cleaning Up
+
+If you call srs-go with -cleandata, the intermediate files under
+SRS-GO/data will be deleted. If you call srs-go with -cleanall, it
+will delete the data files plus *everything* under the experiment
+directory.
+
+Note that, if necessary, srs-go will ssh into the machine the job was
+originally run on in order to delete the local data directories.
+
+Since srs-go remembers -template and -config, you can clean up a
+directory exp01 by just calling:
+
+srs-go -dir exp01 -cleanall
+
+----------------------------------------------------------------------
+See srs-go -h for a complete list options.

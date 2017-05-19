@@ -1,0 +1,91 @@
+8
+
+dir
+944
+file:///u/drspeech/repos/swordfish/src/srs/trunk/test_templates
+file:///u/drspeech/repos/swordfish
+
+
+
+2014-01-27T23:49:31.931383Z
+788
+janin
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+7e38833c-e2bc-0410-b317-944697f6fe29
+
+inherit
+dir
+
+cond
+dir
+
+config
+dir
+
+retry
+dir
+
+timeout
+dir
+
+nest
+dir
+
+simple
+dir
+
+testsuite
+file
+
+
+
+
+2014-01-27T22:18:59.000000Z
+7cce6cd782acdae17ba7330a55f78206
+2014-01-27T23:49:31.931383Z
+788
+janin
+has-props
+
+dumpconfig
+dir
+
+testsuite.at
+file
+
+
+
+
+2014-01-25T23:41:26.000000Z
+e3a7256bf2b802a8e8006c13c588bb94
+2014-01-27T23:49:31.931383Z
+788
+janin
+has-props
+
+README
+file
+
+
+
+
+2013-10-18T17:11:41.000000Z
+9fd52c22e703b38b8fddd22d218f7852
+2013-10-11T18:19:52.722472Z
+650
+janin
+has-props
+

@@ -1,0 +1,8 @@
+salloc: Granted job allocation 4112234
+slurmd[cuttlefish1]: error: Unable to create TMPDIR [/scratch/tmp/janin/tmpdir]: No such file or directory
+slurmd[cuttlefish1]: error: Setting TMPDIR to /tmp
+srs-go:ERROR:2015-07-26-10:02:59: Could not create directory /scratch/tmp/janin/srs/scratch_local_ttmp/janin/srs-go/rS4iKs8L5Zc3 for link /n/banquet/da/janin/projects/swordfish/svn/src/srs/test_templates/testsuite.dir/17/exp.test/tasks/task0000000/SRS-GO/data/scratch_local_ttmp: Permission denied
+srs-go:ERROR:2015-07-26-10:03:00: Could not create directory /scratch/tmp/janin/srs/scratch_local_ttmp/janin/srs-go/G3Ot0w8Jb5jF for link /n/banquet/da/janin/projects/swordfish/svn/src/srs/test_templates/testsuite.dir/17/exp.test/tasks/task0000001/SRS-GO/data/scratch_local_ttmp: Permission denied
+srs-go:ERROR:2015-07-26-10:03:01: Could not create directory /scratch/tmp/janin/srs/scratch_local_ttmp/janin/srs-go/_-Xp94Z4n1UY for link /n/banquet/da/janin/projects/swordfish/svn/src/srs/test_templates/testsuite.dir/17/exp.test/tasks/task0000002/SRS-GO/data/scratch_local_ttmp: Permission denied
+salloc: Relinquishing job allocation 4112234
+salloc: Job allocation 4112234 has been revoked.
